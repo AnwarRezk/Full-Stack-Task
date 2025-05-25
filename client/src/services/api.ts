@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { SignInFormData, AuthResponse, SignUpFormData } from '../types/auth';
+import { defaultMessages } from '../constants/errorMessages';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -18,6 +19,22 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Simple error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (!error.response) {
+      throw new Error(defaultMessages.network);
+    }
+
+    const serverMessage = error.response.data?.message;
+    const status = error.response.status;
+    const fallbackMessage = defaultMessages[status] || defaultMessages.default;
+
+    throw new Error(serverMessage || fallbackMessage);
+  }
+);
 
 export const authApi = {
   signUp: async (data: SignUpFormData): Promise<AuthResponse> => {
