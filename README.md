@@ -88,6 +88,56 @@ npm run dev
 
 The client will be running at `http://localhost:5173`
 
+## Running with Docker
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Quick Start with Docker
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd full_stack_task
+```
+
+2. Create necessary environment files:
+
+For server (.env in server directory):
+```
+MONGODB_URI=mongodb://localhost:27017/auth_db
+JWT_SECRET=your_jwt_secret
+PORT=3000
+```
+
+For client (.env in client directory):
+```
+VITE_API_URL=http://localhost:3000
+```
+
+3. Start the application using Docker Compose:
+```bash
+docker-compose up --build -d
+```
+
+This will:
+- Build and start both the client and server containers
+- Set up hot-reloading for development
+- Make the client available at `http://localhost:5173`
+- Make the server available at `http://localhost:3000`
+
+To stop the application:
+```bash
+docker-compose down
+```
+
+### Docker Development Features
+- Hot-reloading enabled for both client and server
+- No need to install Node.js or npm locally
+- Consistent development environment across team members
+- Volume mounts for real-time code changes
+
 ## Project Structure
 
 ```
