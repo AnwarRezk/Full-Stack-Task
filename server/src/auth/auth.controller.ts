@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, Logger, Inject } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SigninDto } from './dtos/SigninDto';
 import { SignupDto } from './dtos/SignupDto';
@@ -9,7 +9,10 @@ import { AuthResponseDto } from './dtos/AuthResponseDto';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        @Inject(Logger) private readonly logger: Logger
+    ) {}
 
     @ApiOperation({ summary: 'Sign in with email and password' })
     @ApiResponse({ 
@@ -24,6 +27,7 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @Post('sign-in')
     async signIn(@Body() signInDto: SigninDto): Promise<AuthResponseDto> {
+        this.logger.log(`Sign in attempt for user: ${signInDto.email}`, AuthController.name);
         return this.authService.signIn(signInDto);
     }
 
@@ -40,6 +44,7 @@ export class AuthController {
     @HttpCode(HttpStatus.CREATED)
     @Post('sign-up')
     async signUp(@Body() signUpDto: SignupDto): Promise<AuthResponseDto> {
+        this.logger.log(`New user registration: ${signUpDto.email}`, AuthController.name);
         return this.authService.signUp(signUpDto);
     }
 
@@ -67,6 +72,7 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @Get('me')
     async getProfile(@Request() request) {
+        this.logger.log(`Profile accessed by user: ${request.user.email}`, AuthController.name);
         return request.user;
     }
     
@@ -90,7 +96,8 @@ export class AuthController {
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.OK)
     @Post('sign-out')
-    async signOut() {
+    async signOut(@Request() request) {
+        this.logger.log(`User signed out: ${request.user.email}`, AuthController.name);
         return this.authService.signOut();
     }
 }

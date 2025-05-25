@@ -12,6 +12,8 @@ __pycache__/
 # Production
 /build
 /dist
+dist/
+server/dist/
 *.egg-info/
 
 # Environment variables

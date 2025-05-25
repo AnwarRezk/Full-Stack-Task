@@ -1,28 +1,30 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { SigninDto } from './dtos/SigninDto';
 import { AuthResponseDto } from './dtos/AuthResponseDto';
 import { SignupDto } from './dtos/SignupDto';
-
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usersService: UsersService, 
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        @Inject(Logger) private readonly logger: Logger
     ) {}
 
     async signIn(signInDto: SigninDto) : Promise<AuthResponseDto> {
       const { email, password } = signInDto;
       const user = await this.usersService.findByEmail(email);
       if (!user) {
-        throw new UnauthorizedException('Invalid email or password');
+        this.logger.warn(`Failed sign in attempt: user not found - ${email}`, AuthService.name);
+        throw new UnauthorizedException('The email or password you entered is incorrect. Please try again.');
       }
 
       const isPasswordValid = await compare(password, user.password);
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid email or password');
+        this.logger.warn(`Failed sign in attempt: invalid password - ${email}`, AuthService.name);
+        throw new UnauthorizedException('The email or password you entered is incorrect. Please try again.');
       }
 
       const payload = { sub: user._id, email: user.email };
@@ -40,7 +42,8 @@ export class AuthService {
         const { email, name, password } = signUpDto;
         const existingUser = await this.usersService.findByEmail(email);
         if (existingUser) {
-            throw new ConflictException('User with this email already exists');
+            this.logger.warn(`Registration failed: email already exists - ${email}`, AuthService.name);
+            throw new ConflictException('An account with this email already exists. Please try signing in instead.');
         }
 
         const hashedPassword = await hash(password, 10);
@@ -60,7 +63,7 @@ export class AuthService {
     async signOut() {
         return {
             success: true,
-            message: 'Logged out successfully'
+            message: 'You have been successfully signed out.'
         };
     }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -21,5 +21,6 @@ import { AuthModule } from './auth/auth.module';
     AuthModule
   ],
   controllers: [AppController],
+  providers: [Logger],
 })
 export class AppModule {}
