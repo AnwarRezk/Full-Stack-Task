@@ -5,15 +5,23 @@ import {
   Typography,
   Button,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { authApi } from '../services/api';
 
+interface WelcomeMessage {
+  message: string;
+  status: string;
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [welcomeMessage, setWelcomeMessage] = useState<WelcomeMessage | null>(null);
   const [profile, setProfile] = useState<{
     _id: string;
     email: string;
@@ -23,24 +31,38 @@ export default function Home() {
   } | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await authApi.getProfile();
-        setProfile(data);
+        setError(null);
+        
+        // Fetch both profile and welcome message in parallel
+        const [profileData, welcomeData] = await Promise.all([
+          authApi.getProfile(),
+          authApi.getWelcomeMessage()
+        ]);
+        
+        setProfile(profileData);
+        setWelcomeMessage(welcomeData);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching data:', error);
+        setError('Failed to load data. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/signin');
+    try {
+      await signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setError('Failed to sign out. Please try again.');
+    }
   };
 
   if (loading) {
@@ -70,22 +92,24 @@ export default function Home() {
           gap: 2,
         }}
       >
+        {error && (
+          <Alert severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        )}
+
         <Typography component="h1" variant="h4">
-          Welcome to the application
+          {welcomeMessage?.message || 'Welcome to the application'}
         </Typography>
+
         {profile && (
           <>
             <Typography variant="h6" color="text.secondary">
               Hello, {profile.name}!
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Email: {profile.email}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Member since: {new Date(profile.createdAt).toLocaleDateString()}
-            </Typography>
           </>
         )}
+
         <Button
           variant="contained"
           color="primary"

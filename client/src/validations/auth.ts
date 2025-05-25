@@ -1,9 +1,11 @@
 import * as yup from 'yup';
 
+const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export const signUpSchema = yup.object().shape({
   email: yup
     .string()
-    .email('Please enter a valid email')
+    .matches(emailRegex, 'Please enter a valid email address (e.g., user@example.com)')
     .required('Email is required'),
   name: yup
     .string()
@@ -21,7 +23,7 @@ export const signUpSchema = yup.object().shape({
 export const signInSchema = yup.object().shape({
   email: yup
     .string()
-    .email('Please enter a valid email')
+    .matches(emailRegex, 'Please enter a valid email address (e.g., user@example.com)')
     .required('Email is required'),
   password: yup
     .string()

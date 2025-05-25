@@ -45,6 +45,14 @@ export const authApi = {
     const response = await api.get('/auth/me');
     return response.data;
   },
+
+  getWelcomeMessage: async (): Promise<{
+    message: string;
+    status: string;
+  }> => {
+    const response = await api.get('/');
+    return response.data;
+  },
 };
 
 export default api; 
